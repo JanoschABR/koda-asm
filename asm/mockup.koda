@@ -1,0 +1,10 @@
+; Koda test file
+
+load    0 0xFF         ; Store 0xFF into the first register
+
+; TODO: Remove memory exchange -- seems unnecessary
+memw    0 0x0200       ; Store the first register into memory at address 0x0200
+memr    1 0x0200       ; Load memory address 0x0200 into the second register
+
+staw    1              ; Set the state register to the second register
+halt
