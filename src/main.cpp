@@ -26,18 +26,37 @@ int main (int argc, char* argv[]) {
             tokenizer_result result = tokenizer_result();
             assembly_tokenizer tokenizer = assembly_tokenizer();
 
-            create_and_add_tokenizer(tokenizer, instructions::noop, "noop");
-            create_and_add_tokenizer(tokenizer, instructions::halt, "halt");
-            create_and_add_tokenizer(tokenizer, instructions::panic, "panic");
+            using namespace instructions;
+            create_and_add_tokenizer(tokenizer, base_noop, "noop");
+            create_and_add_tokenizer(tokenizer, base_halt, "halt");
+            create_and_add_tokenizer(tokenizer, base_panic, "panic");
 
-            create_and_add_tokenizer(tokenizer, instructions::increment_register, "regi");
-            create_and_add_tokenizer(tokenizer, instructions::decrement_register, "regd");
-            create_and_add_tokenizer(tokenizer, instructions::store_into_register, "load");
-            create_and_add_tokenizer(tokenizer, instructions::memory_to_register, "memr");
-            create_and_add_tokenizer(tokenizer, instructions::register_to_memory, "memw");
+            create_and_add_tokenizer(tokenizer, base_increment_register, "regi");
+            create_and_add_tokenizer(tokenizer, base_decrement_register, "regd");
+            create_and_add_tokenizer(tokenizer, base_store_into_register, "load");
+            create_and_add_tokenizer(tokenizer, base_memory_to_register, "memr");
+            create_and_add_tokenizer(tokenizer, base_register_to_memory, "memw");
 
-            create_and_add_tokenizer(tokenizer, instructions::write_state_register, "staw");
-            create_and_add_tokenizer(tokenizer, instructions::read_state_register, "star");
+            create_and_add_tokenizer(tokenizer, base_write_state_register, "staw");
+            create_and_add_tokenizer(tokenizer, base_read_state_register, "star");
+
+            create_and_add_tokenizer(tokenizer, base_jump, "jump");
+            create_and_add_tokenizer(tokenizer, base_jump_compare, "jcmp");
+            create_and_add_tokenizer(tokenizer, base_compare, "cmpb");
+            create_and_add_tokenizer(tokenizer, base_compare_x16, "cmps");
+
+            create_and_add_tokenizer(tokenizer, alu_add, "add");
+            create_and_add_tokenizer(tokenizer, alu_sub, "sub");
+            create_and_add_tokenizer(tokenizer, alu_and, "and");
+            create_and_add_tokenizer(tokenizer, alu_or, "or");
+            create_and_add_tokenizer(tokenizer, alu_not, "not");
+            create_and_add_tokenizer(tokenizer, alu_xor, "xor");
+
+            create_and_add_tokenizer(tokenizer, alu_shift_l, "shl");
+            create_and_add_tokenizer(tokenizer, alu_shift_r, "shr");
+
+            create_and_add_tokenizer(tokenizer, ext_platform_info, "plat");
+            create_and_add_tokenizer(tokenizer, ext_invoke, "ext");
 
             tokenizer.tokenize_file(stream, &result);
 

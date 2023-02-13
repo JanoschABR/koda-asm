@@ -2,7 +2,7 @@
 #include "../shared.hpp"
 
 /// The size of an instruction, in bytes
-#define INSTR_FULL_SIZE 24
+#define INSTR_FULL_SIZE 8
 
 /// The size of the instruction address, in bytes
 #define INSTR_ADDR_SIZE 2

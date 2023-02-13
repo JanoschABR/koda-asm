@@ -50,101 +50,315 @@ instr_tokenizer(__name, { \
         return true;
     };
 
-    instr_tokenizer_no_args(noop, 0x0000)
+    void internal_put_x8 (const string& txt, byte* a, int line, tokenizer_result* result) {
+        uint value;
+        parse_number(txt, &value, 1, line, result);
+        *a = (byte)value;
+    }
+#define put_x8(txt, a) internal_put_x8(txt, a, line, result)
 
-    instr_tokenizer_no_args(halt, 0x0001)
+    void internal_put_x16 (const string& txt, byte* a, byte* b, int line, tokenizer_result* result) {
+        uint value;
+        parse_number(txt, &value, 2, line, result);
+        auto data_bytes = bin::short_to_bytes((short)value);
+        *a = (byte)data_bytes[0];
+        *b = (byte)data_bytes[1];
+    }
+#define put_x16(txt, a, b) internal_put_x16(txt, a, b, line, result)
 
-    instr_tokenizer_no_args(panic, 0x0002)
+#define instr_valid(num) if (validate_args(parts, num, line, result)) return;
+#define instr_init(code) auto instr = bytecode_instruction(code);
+#define instr_done() result->add_instruction(instr);
 
-    instr_tokenizer(increment_register, {
-        if (validate_args(parts, 1, line, result)) return;
-        auto instr = bytecode_instruction(0x0100);
+    instr_tokenizer_no_args(base_noop, 0x0000)
 
-        uint reg; // Parse the register ID
-        parse_number(parts[1], &reg, 1, line, result);
-        instr.data[0] = (byte) reg;
+    instr_tokenizer_no_args(base_halt, 0x0001)
 
-        result->add_instruction(instr);
+    instr_tokenizer_no_args(base_panic, 0x0002)
+
+    instr_tokenizer(base_increment_register, {
+        instr_valid(1);
+        instr_init(0x0100);
+
+        // Register
+        put_x8(parts[1], &instr.data[0]);
+
+        instr_done();
     })
 
-    instr_tokenizer(decrement_register, {
-        if (validate_args(parts, 1, line, result)) return;
-        auto instr = bytecode_instruction(0x0101);
+    instr_tokenizer(base_decrement_register, {
+        instr_valid(1);
+        instr_init(0x0101);
 
-        uint reg; // Parse the register ID
-        parse_number(parts[1], &reg, 1, line, result);
-        instr.data[0] = (byte) reg;
+        // Register
+        put_x8(parts[1], &instr.data[0]);
 
-        result->add_instruction(instr);
+        instr_done();
     })
 
-    instr_tokenizer(store_into_register, {
-        if (validate_args(parts, 2, line, result)) return;
-        auto instr = bytecode_instruction(0x0102);
+    instr_tokenizer(base_store_into_register, {
+        instr_valid(2);
+        instr_init(0x0102);
 
-        uint reg; // Parse the register ID
-        parse_number(parts[1], &reg, 1, line, result);
-        instr.data[0] = (byte) reg;
+        // Register
+        put_x8(parts[1], &instr.data[0]);
 
-        uint data; // Parse the data
-        parse_number(parts[2], &data, 1, line, result);
-        instr.data[1] = (byte) data;
+        // Value
+        put_x8(parts[2], &instr.data[1]);
 
-        result->add_instruction(instr);
+        instr_done();
     })
 
-    instr_tokenizer(memory_to_register, {
-        if (validate_args(parts, 2, line, result)) return;
-        auto instr = bytecode_instruction(0x0103);
+    instr_tokenizer(base_memory_to_register, {
+        instr_valid(2);
+        instr_init(0x0103);
 
-        uint reg; // Parse the register ID
-        parse_number(parts[1], &reg, 1, line, result);
-        instr.data[0] = (byte) reg;
+        // Register
+        put_x8(parts[1], &instr.data[0]);
 
-        uint data; // Parse the data
-        parse_number(parts[2], &data, 2, line, result);
-        auto data_bytes = bin::short_to_bytes((short)data);
-        instr.data[1] = (byte) data_bytes[0];
-        instr.data[2] = (byte) data_bytes[1];
+        // Address
+        put_x16(parts[2], &instr.data[1], &instr.data[2]);
 
-        result->add_instruction(instr);
+        instr_done();
     })
 
-    instr_tokenizer(register_to_memory, {
-        if (validate_args(parts, 2, line, result)) return;
-        auto instr = bytecode_instruction(0x0104);
+    instr_tokenizer(base_register_to_memory, {
+        instr_valid(2);
+        instr_init(0x0104);
 
-        uint reg; // Parse the register ID
-        parse_number(parts[1], &reg, 1, line, result);
-        instr.data[0] = (byte) reg;
+        // Register
+        put_x8(parts[1], &instr.data[0]);
 
-        uint data; // Parse the data
-        parse_number(parts[2], &data, 2, line, result);
-        auto data_bytes = bin::short_to_bytes((short)data);
-        instr.data[1] = (byte) data_bytes[0];
-        instr.data[2] = (byte) data_bytes[1];
+        // Address
+        put_x16(parts[2], &instr.data[1], &instr.data[2]);
 
-        result->add_instruction(instr);
+        instr_done();
     })
 
-    instr_tokenizer(write_state_register, {
-        if (validate_args(parts, 1, line, result)) return;
-        auto instr = bytecode_instruction(0x0110);
+    instr_tokenizer(base_write_state_register, {
+        instr_valid(1);
+        instr_init(0x0110);
 
-        uint reg; // Parse the register ID
-        parse_number(parts[1], &reg, 1, line, result);
-        instr.data[0] = (byte) reg;
+        // Register
+        put_x8(parts[1], &instr.data[0]);
 
-        result->add_instruction(instr);
+        instr_done();
     })
-    instr_tokenizer(read_state_register, {
-        if (validate_args(parts, 1, line, result)) return;
-        auto instr = bytecode_instruction(0x0111);
+    instr_tokenizer(base_read_state_register, {
+        instr_valid(1);
+        instr_init(0x0111);
 
-        uint reg; // Parse the register ID
-        parse_number(parts[1], &reg, 1, line, result);
-        instr.data[0] = (byte) reg;
+        // Register
+        put_x8(parts[1], &instr.data[0]);
 
-        result->add_instruction(instr);
+        instr_done();
+    })
+
+    instr_tokenizer(base_jump, {
+        instr_valid(1);
+        instr_init(0x0200);
+
+        // Address
+        put_x16(parts[1], &instr.data[0], &instr.data[1]);
+
+        instr_done();
+    })
+
+    instr_tokenizer(base_compare, {
+        instr_valid(2);
+        instr_init(0x0300);
+
+        // Register A
+        put_x8(parts[1], &instr.data[0]);
+
+        // Register B
+        put_x8(parts[2], &instr.data[1]);
+
+        instr_done();
+    })
+
+    instr_tokenizer(base_compare_x16, {
+        instr_valid(4);
+        instr_init(0x0301);
+
+        // Register A
+        put_x8(parts[1], &instr.data[0]);
+
+        // Register B
+        put_x8(parts[2], &instr.data[1]);
+
+        // Register C
+        put_x8(parts[3], &instr.data[2]);
+
+        // Register D
+        put_x8(parts[4], &instr.data[3]);
+
+        instr_done();
+    })
+
+    instr_tokenizer(base_jump_compare, {
+        instr_valid(2);
+        instr_init(0x0201);
+
+        // Register
+        put_x8(parts[1], &instr.data[0]);
+
+        // Address
+        put_x16(parts[2], &instr.data[1], &instr.data[2]);
+
+        instr_done();
+    })
+
+    // #################################################
+
+    instr_tokenizer(alu_add, {
+        instr_valid(2);
+        instr_init(0x0310);
+
+        // Register A
+        put_x8(parts[1], &instr.data[0]);
+
+        // Register B
+        put_x8(parts[2], &instr.data[1]);
+
+        // Out Register
+        put_x8(parts[3], &instr.data[2]);
+
+        instr_done();
+    })
+
+    instr_tokenizer(alu_sub, {
+        instr_valid(2);
+        instr_init(0x0311);
+
+        // Register A
+        put_x8(parts[1], &instr.data[0]);
+
+        // Register B
+        put_x8(parts[2], &instr.data[1]);
+
+        // Out Register
+        put_x8(parts[3], &instr.data[2]);
+
+        instr_done();
+    })
+
+    instr_tokenizer(alu_and, {
+        instr_valid(3);
+        instr_init(0x0312);
+
+        // Register A
+        put_x8(parts[1], &instr.data[0]);
+
+        // Register B
+        put_x8(parts[2], &instr.data[1]);
+
+        // Out Register
+        put_x8(parts[3], &instr.data[2]);
+
+        instr_done();
+    })
+
+    instr_tokenizer(alu_or, {
+        instr_valid(3);
+        instr_init(0x0313);
+
+        // Register A
+        put_x8(parts[1], &instr.data[0]);
+
+        // Register B
+        put_x8(parts[2], &instr.data[1]);
+
+        // Out Register
+        put_x8(parts[3], &instr.data[2]);
+
+        instr_done();
+    })
+
+    instr_tokenizer(alu_not, {
+        instr_valid(2);
+        instr_init(0x0314);
+
+        // Register A
+        put_x8(parts[1], &instr.data[0]);
+
+        // Out Register
+        put_x8(parts[2], &instr.data[1]);
+
+        instr_done();
+    })
+
+    instr_tokenizer(alu_xor, {
+        instr_valid(3);
+        instr_init(0x0315);
+
+        // Register A
+        put_x8(parts[1], &instr.data[0]);
+
+        // Register B
+        put_x8(parts[2], &instr.data[1]);
+
+        // Out Register
+        put_x8(parts[3], &instr.data[2]);
+
+        instr_done();
+    })
+
+    instr_tokenizer(alu_shift_l, {
+        instr_valid(3);
+        instr_init(0x0316);
+
+        // Register A
+        put_x8(parts[1], &instr.data[0]);
+
+        // Register B
+        put_x8(parts[2], &instr.data[1]);
+
+        // Out Register
+        put_x8(parts[3], &instr.data[2]);
+
+        instr_done();
+    })
+
+    instr_tokenizer(alu_shift_r, {
+        instr_valid(3);
+        instr_init(0x0317);
+
+        // Register A
+        put_x8(parts[1], &instr.data[0]);
+
+        // Register B
+        put_x8(parts[2], &instr.data[1]);
+
+        // Out Register
+        put_x8(parts[3], &instr.data[2]);
+
+        instr_done();
+    })
+
+    // #######################
+
+    instr_tokenizer(ext_platform_info, {
+        instr_valid(2);
+        instr_init(0x1000);
+
+        // Register A
+        put_x8(parts[1], &instr.data[0]);
+
+        // Out Register
+        put_x8(parts[2], &instr.data[1]);
+
+        instr_done();
+    })
+
+    instr_tokenizer(ext_invoke, {
+        instr_valid(INSTR_DATA_SIZE);
+        instr_init(0x1001);
+
+        for (int i = 0; i < INSTR_DATA_SIZE; i++) {
+            put_x8(parts[1 + i], &instr.data[i]);
+        }
+
+        instr_done();
     })
 }
